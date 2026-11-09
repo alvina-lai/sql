@@ -42,7 +42,7 @@ HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK().
 Filter the visits to dates before April 29, 2022. */
 --QUERY 2
 SELECT DISTINCT customer_id, market_date,
-	   ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY market_date) AS visit_number
+	   DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date) AS visit_number
 FROM customer_purchases
 WHERE market_date < '2022-04-29'
 ORDER BY customer_id, market_date;
@@ -56,7 +56,7 @@ then write another query that uses this one as a subquery (or temp table) and fi
 only the customer’s most recent visit.
 HINT: Do not use the previous visit dates filter. */
 --QUERY 3
-SELECT customer_id, market_date
+SELECT customer_id, market_date, visit_number
 FROM (
 	SELECT DISTINCT customer_id, market_date,
 	DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS visit_number
@@ -77,7 +77,7 @@ You can make this a running count by including an ORDER BY within the PARTITION 
 Filter the visits to dates before April 29, 2022. */
 --QUERY 4
 SELECT customer_id, product_id, market_date,
-	   COUNT(product_id) OVER (PARTITION BY customer_id, product_id ORDER BY market_date) AS purchase_count
+	   COUNT(product_id) OVER (PARTITION BY customer_id, product_id) AS product_purchase_count
 FROM customer_purchases
 WHERE market_date < '2022-04-29'
 ORDER BY customer_id, product_id, market_date;
@@ -116,12 +116,12 @@ FROM product;
 --QUERY 6
 SELECT product_name, product_size,
 	CASE
-		WHEN INSTR(product_size, '-') > 0 
-		THEN TRIM(SUBSTR(product_size, INSTR(product_size, '-') + 1))
+		WHEN INSTR(product_name, '-') > 0 
+		THEN TRIM(SUBSTR(product_name, INSTR(product_name, '-') + 1))
 		ELSE NULL
-	END AS size_with_number
+	END AS description
 FROM product
-WHERE REGEXP_LIKE(product_size, '[0-9]');
+WHERE product_size REGEXP '[0-9]';
 
 
 
@@ -212,8 +212,8 @@ WHERE product_qty_type = 'unit';
 This can be any product you desire (e.g. add another record for Apple Pie). */
 --QUERY 10
 INSERT INTO product_units
-(product_id, product_name, product_size, product_qty_type, snapshot_timestamp)
-VALUES (11, 'Apple Pie', '1 slice', 'unit', CURRENT_TIMESTAMP);
+(product_id, product_name, product_size, product_category_id, product_qty_type, snapshot_timestamp)
+VALUES (7, 'Apple Pie', '10"', 3, 'unit', CURRENT_TIMESTAMP);
 
 
 
@@ -226,8 +226,8 @@ VALUES (11, 'Apple Pie', '1 slice', 'unit', CURRENT_TIMESTAMP);
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 --QUERY 11
 DELETE FROM product_units
-WHERE product_id = 11 AND snapshot_timestamp < (SELECT MAX(snapshot_timestamp) 
-FROM product_units WHERE product_id = 11);
+WHERE product_id = 7 AND rowid = (SELECT MIN(rowid)
+FROM product_units WHERE product_id = 7);
 
 
 
@@ -259,10 +259,9 @@ SET current_quantity = COALESCE((
 	SELECT vi.quantity
 	FROM vendor_inventory AS vi
 	WHERE vi.product_id = product_units.product_id
-	ORDER BY vi.inventory_id DESC
+	ORDER BY vi.market_date DESC
 	LIMIT 1
-), 0)
-WHERE product_id IN (SELECT DISTINCT product_id FROM vendor_inventory);
+), 0);
 
 
 

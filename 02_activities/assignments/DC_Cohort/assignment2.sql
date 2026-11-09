@@ -76,7 +76,7 @@ customer_purchases table that indicates how many different times that customer h
 You can make this a running count by including an ORDER BY within the PARTITION BY if desired.
 Filter the visits to dates before April 29, 2022. */
 --QUERY 4
-SELECT customer_id, product_id, market_date,
+SELECT *,
 	   COUNT(product_id) OVER (PARTITION BY customer_id, product_id) AS product_purchase_count
 FROM customer_purchases
 WHERE market_date < '2022-04-29'
@@ -176,9 +176,9 @@ Think a bit about the row counts: how many distinct vendors, product names are t
 How many customers are there (y). 
 Before your final group by you should have the product of those two queries (x*y).  */
 --QUERY 8
-SELECT vendor_name, product_name, SUM(5 * cost_per_quantity) AS total_revenue
+SELECT vendor_name, product_name, SUM(5 * original_price) AS total_revenue
 FROM (
-	SELECT DISTINCT v.vendor_name, p.product_name, vi.cost_per_quantity
+	SELECT DISTINCT v.vendor_name, p.product_name, vi.original_price
 	FROM vendor_inventory AS vi
 	INNER JOIN vendor AS v ON vi.vendor_id = v.vendor_id
 	INNER JOIN product AS p ON vi.product_id = p.product_id

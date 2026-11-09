@@ -57,7 +57,9 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 **HINT:** search type 1 vs type 2 slowly changing dimensions. 
 
 ```
-Your answer...
+Type 1 (overwrite): CUSTOMER_ADDRESS has one row per customer: customer_address_id (PK), customer_id (FK, unique), street_address, city, province, postal_code, country, last_updated. When a customer moves, their existing row is updated in place with the new address. The table will always show the current address, but the old address is lost.
+
+Type 2 (retain changes): CUSTOMER_ADDRESS can have many rows per customer: customer_address_id (PK), customer_id (FK), street_address, city, province, postal_code, country, effective_start_date, effective_end_date, is_current. When a customer moves, the old row is closed off (effective_end_date is filled in and is_current is set to 0) and a new row is inserted with the new address and is_current = 1. This will keep a full history of every address the customer has had.
 ```
 
 ***
@@ -193,5 +195,7 @@ Consider, for example, concepts of labour, bias, LLM proliferation, moderating c
 
 
 ```
-Your thoughts...
+I think one of the biggest issues is definitely concepts of labour - people tend to treat other people almost just like robots themselves as can be seen from the slave wages being paid to those working at sweatshops. Many ways of earning money such as dropshipping tend to take advantage of these individuals because it is simply easier and cheaper (in terms of maximizing profit margins) than outsourcing to people who are being paid fair wages. However, this is always the option that the majority of consumers will go for when buying clothes anyway because they know that it will be cheaper for them, even though the material might not be high quality - what's important is that it is something they want and it is affordable.
+
+Another issue that comes up for certain is the amount of reliance these days on LLMs. It's very interesting to see that the bottom of this entire chain for why this began in the first place is because of humans tirelessly working on a giant corpus for an image recognition system.  As someone who has spent a lot of time around people in tech, learning to code is quickly becoming a thing of the past - everyone is cognitively offloading things that they used to need to do to an LLM to handle the automation of all of this work. While this means that technology will advance quite rapidly, it also gives AI way more control over things that humans should probably have more of a major say in. When humans become lazy, they will not devote as much time and energy to checking for errors and issues in the work that the LLM is completing, and many hidden mistakes could just be lying around. 
 ```
